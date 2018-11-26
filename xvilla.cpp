@@ -20,14 +20,7 @@ struct Symbol
     Symbol *rightChild;
     string code;
 
-    Symbol( int freq = 0, int index = -1 ) {
-        this->freq = freq;
-        this->index = index;
-        leftChild = 0;
-        rightChild = 0;
-    }
-
-    Symbol(int freq, int index, bool leaf, Symbol* leftChild=0, Symbol* rightChild=0){
+    Symbol(int freq, int index, Symbol* leftChild=0, Symbol* rightChild=0){
         this->freq = freq;
         this->index = index;
         this->leftChild = leftChild;
@@ -42,9 +35,9 @@ struct Symbol
         this->leftChild->traverse( codes, code + '0' );
         this->rightChild->traverse( codes, code + '1' );
     } else {
-        cout << " " << index << "      ";
-        cout << setw( 2 ) << freq;
-        cout << "     " << code << endl;
+        // cout << " " << index << "      ";
+        // cout << setw( 2 ) << freq;
+        // cout << "     " << code << endl;
         this->code = code;
         codes[index] = code;
     }
@@ -54,13 +47,14 @@ struct Symbol
 class myCmp
 {
 public:
-    int operator() (const Symbol& p1, const Symbol& p2){ return p1.getFreq() > p2.getFreq(); }
-};
-
-class myCmp2
-{
-public:
-    int operator() (const Symbol& p1, const Symbol& p2){ return p1.getIndex() > p2.getIndex(); }
+    int operator() (const Symbol& s1, const Symbol& s2){ 
+        if (s1.getFreq() == s2.getFreq()) {
+            return s1.getIndex() > s2.getIndex();
+        }
+        else{
+            return s1.getFreq() >= s2.getFreq();
+        } 
+    }
 };
 
 void huffman(int size, int* arr, string* codes)
@@ -69,34 +63,28 @@ void huffman(int size, int* arr, string* codes)
     priority_queue <Symbol, vector<Symbol>, myCmp> minPQ;
 
     // fill our que with the values
-    for (int i = 0; i < size; i++){
-        minPQ.push(Symbol(arr[i], i, true));
+    for (int i = size-1; i >= 0; i--){
+        minPQ.push(Symbol(arr[i], i));
     }
 
-    cout << "Popping my Min Priority Que until there is only one Symbol left" << endl;
+    // cout << "Popping my Min Priority Que until there is only one Symbol left" << endl;
 
+    int i = INT16_MIN;
     while (minPQ.size() > 1){
         Symbol* l = new Symbol(minPQ.top());
         minPQ.pop();
         Symbol* r = new Symbol(minPQ.top());
         minPQ.pop();
-        cout << "L: freq:" << l->getFreq() << " index:" << l->getIndex() << endl;
-        cout << "R: freq:" << r->getFreq() << " index:" << r->getIndex() << endl;
-        minPQ.push( Symbol( l->getFreq()+r->getFreq(), 0, false, l, r ) );
+        // cout << "L: freq:" << l->getFreq() << " index:" << l->getIndex() << endl;
+        // cout << "R: freq:" << r->getFreq() << " index:" << r->getIndex() << endl << endl;
+        minPQ.push( Symbol( l->getFreq()+r->getFreq(), i, l, r ) );
+        i--;
     }
 
-    cout << "printing my queue" << endl;
+    // cout << "printing my queue" << endl;
     
     Symbol head = minPQ.top();
     head.traverse(codes);
-
-    // create another priority que in order of index
-    priority_queue <Symbol, vector<Symbol>, myCmp2> minIndexPQ;
-    // fill our que with the values
-    for (int i = 0; i < size; i++){
-        minIndexPQ.push(Symbol(arr[i], i, true));
-    }
-
 
 }
 
@@ -114,7 +102,8 @@ int main(int argc, char const *argv[])
     huffman(size, arr, codes);
 
     // print the codes
-    for (int i=0; i<size; i++){ cout << arr[i] << " -> " << codes[i] << endl; }
+    // for (int i=0; i<size; i++){ cout << arr[i] << " -> " << codes[i] << endl; }
+    for (int i=0; i<size; i++){ cout << codes[i] << endl; }
     
     return 0;
 }
